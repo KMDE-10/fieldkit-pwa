@@ -1,6 +1,6 @@
 // --- GPS Module ---
 // Uses Geolocation API to show device position on the map.
-// GPS button: click to start tracking + fly to position, click again to re-center.
+// GPS button: tap to start tracking + fly to position, tap again to re-center.
 // Long press (>800ms) to stop tracking and remove marker.
 
 (function() {
@@ -11,6 +11,7 @@
     var gpsStatus = document.getElementById('gps-status');
     var isTracking = false;
     var lastLat = null, lastLng = null;
+    var usedTouch = false; // prevent mouse events after touch
 
     function updatePosition(lat, lng, accuracy) {
         lastLat = lat;
@@ -51,20 +52,36 @@
         isTracking = true;
         gpsBtn.classList.add('active');
 
-        gpsWatchId = navigator.geolocation.watchPosition(
+        // iOS Safari: call getCurrentPosition first (must be in direct user gesture)
+        // then start watchPosition for continuous updates
+        navigator.geolocation.getCurrentPosition(
             function(pos) {
                 updatePosition(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                flyToGPS();
+
+                // Now start continuous watching
+                gpsWatchId = navigator.geolocation.watchPosition(
+                    function(pos) {
+                        updatePosition(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                    },
+                    function(err) {
+                        console.warn('GPS watch error:', err.message);
+                    },
+                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 }
+                );
             },
             function(err) {
-                console.warn('GPS error:', err.message);
+                console.warn('GPS error:', err.code, err.message);
                 if (err.code === 1) {
-                    alert('GPS-Zugriff verweigert. Bitte in den Einstellungen erlauben.');
+                    alert('GPS-Zugriff verweigert.\n\niPhone: Einstellungen \u2192 Datenschutz \u2192 Ortungsdienste \u2192 Safari \u2192 \"Beim Verwenden der App\"\n\nDann Seite neu laden.');
+                } else if (err.code === 2) {
+                    alert('GPS nicht verf\u00FCgbar. Bitte Ortungsdienste aktivieren.');
                 } else {
-                    alert('GPS Fehler: ' + err.message);
+                    alert('GPS Zeitüberschreitung. Bitte erneut versuchen.');
                 }
                 stopTracking();
             },
-            { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+            { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
         );
     }
 
@@ -91,12 +108,11 @@
         }
     }
 
-    // Button interaction
+    // --- Button interaction ---
     var pressTimer = null;
     var pressHandled = false;
 
-    function onPressStart(e) {
-        e.preventDefault();
+    function handlePress() {
         pressHandled = false;
         pressTimer = setTimeout(function() {
             pressHandled = true;
@@ -105,40 +121,49 @@
         }, 800);
     }
 
-    function onPressEnd(e) {
-        e.preventDefault();
+    function handleRelease() {
         if (pressHandled) { pressTimer = null; return; }
-        clearTimeout(pressTimer);
+        if (pressTimer) clearTimeout(pressTimer);
         pressTimer = null;
 
         if (!isTracking) {
             startTracking();
-            // Wait for first position, then fly
-            var waitCount = 0;
-            var waitInterval = setInterval(function() {
-                waitCount++;
-                if (lastLat !== null) {
-                    flyToGPS();
-                    clearInterval(waitInterval);
-                }
-                if (waitCount > 50) clearInterval(waitInterval); // 10s timeout
-            }, 200);
         } else {
             flyToGPS();
         }
     }
 
-    // Mouse events (desktop)
-    gpsBtn.addEventListener('mousedown', onPressStart);
-    gpsBtn.addEventListener('mouseup', onPressEnd);
-    gpsBtn.addEventListener('mouseleave', function() {
-        if (pressTimer && pressTimer !== 'long') clearTimeout(pressTimer);
+    // Touch events (mobile) — these fire first on touch devices
+    gpsBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        usedTouch = true;
+        handlePress();
+    }, { passive: false });
+
+    gpsBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        handleRelease();
+    }, { passive: false });
+
+    gpsBtn.addEventListener('touchcancel', function() {
+        if (pressTimer) clearTimeout(pressTimer);
+        pressTimer = null;
     });
 
-    // Touch events (mobile)
-    gpsBtn.addEventListener('touchstart', onPressStart, { passive: false });
-    gpsBtn.addEventListener('touchend', onPressEnd, { passive: false });
-    gpsBtn.addEventListener('touchcancel', function() {
+    // Mouse events (desktop only — skip if touch was used)
+    gpsBtn.addEventListener('mousedown', function(e) {
+        if (usedTouch) { usedTouch = false; return; }
+        e.preventDefault();
+        handlePress();
+    });
+
+    gpsBtn.addEventListener('mouseup', function(e) {
+        if (usedTouch) return;
+        e.preventDefault();
+        handleRelease();
+    });
+
+    gpsBtn.addEventListener('mouseleave', function() {
         if (pressTimer) clearTimeout(pressTimer);
     });
 })();
