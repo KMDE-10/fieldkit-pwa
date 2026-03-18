@@ -1,0 +1,219 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #1a1a1a; }
+#map { width: 100%; height: 100vh; height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); z-index: 1; }
+
+#panel {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 16px;
+    width: 320px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    font-size: 14px;
+    -webkit-overflow-scrolling: touch;
+}
+
+#panel h1 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #222;
+}
+
+#panel label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 3px;
+    margin-top: 8px;
+}
+
+#panel input[type="text"], #panel textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: monospace;
+}
+
+#panel textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+#panel textarea:focus,
+#panel input:focus {
+    outline: none;
+    border-color: #4a90d9;
+    box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+}
+
+#panel button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: #2d6a4f;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+#panel button:hover { background: #1b4332; }
+
+#status {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none;
+}
+
+#status.info { display: block; background: #e7f0fd; color: #1a4b8c; }
+#status.error { display: block; background: #fde7e7; color: #8c1a1a; }
+#status.success { display: block; background: #e7fde7; color: #1a8c1a; }
+
+#parcel-list { margin-top: 12px; }
+
+.parcel-item {
+    padding: 8px;
+    margin-top: 6px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+    cursor: pointer;
+    font-size: 13px;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.parcel-item:hover { background: #e8e8e8; }
+
+.parcel-item.active {
+    border-left-color: #1e3a8a;
+    background: #eff6ff;
+}
+
+.parcel-item .parcel-id {
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.parcel-item .parcel-detail {
+    color: #666;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.layer-toggles {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.layer-toggles label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+    color: #333;
+    margin-top: 4px;
+    cursor: pointer;
+    min-height: 36px;
+}
+
+.layer-toggles input[type="checkbox"] { margin: 0; width: 18px; height: 18px; }
+
+.contour-label {
+    background: rgba(255,255,255,0.7) !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #8B4513;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 12px;
+    border-radius: 2px;
+    padding: 0 2px !important;
+}
+
+/* GPS button */
+#gps-btn {
+    position: absolute;
+    bottom: 100px;
+    left: 12px;
+    z-index: 1000;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    border: 2px solid #ccc;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    color: #333;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#gps-btn.active {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+/* GPS accuracy badge */
+#gps-status {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 1000;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    display: none;
+    pointer-events: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    #panel {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 40vh;
+        border-radius: 16px 16px 0 0;
+        padding: 12px 16px;
+    }
+    #panel::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: #ccc;
+        border-radius: 2px;
+        margin: 0 auto 8px;
+    }
+    #gps-btn {
+        bottom: calc(40vh + 16px);
+    }
+}

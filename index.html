@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FieldKit</title>
+    <meta name="theme-color" content="#2d6a4f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="./lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="./css/app.css" />
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- GPS accuracy badge -->
+    <div id="gps-status">GPS: --</div>
+
+    <!-- GPS locate button -->
+    <button id="gps-btn" title="Mein Standort">&#9678;</button>
+
+    <!-- Control panel -->
+    <div id="panel">
+        <h1>FieldKit</h1>
+        <form id="coords-form">
+            <label for="coords">Koordinaten (DMS oder Dezimal)</label>
+            <input type="text" id="coords" placeholder='51&deg;10&apos;19.8"N 11&deg;25&apos;38.1"E' />
+            <div style="font-size:11px;color:#888;margin-top:3px">
+                oder Klick auf die Karte
+            </div>
+            <button type="submit">Flurst&uuml;ck suchen</button>
+        </form>
+        <form id="flst-form" style="margin-top:12px; padding-top:10px; border-top:1px solid #ddd;">
+            <label for="flst-select">Flurst&uuml;ck</label>
+            <select id="flst-select" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:4px;font-size:14px;min-height:44px;">
+                <option value="">-- Flurst&uuml;ck w&auml;hlen --</option>
+            </select>
+        </form>
+        <div id="status"></div>
+        <div id="parcel-list"></div>
+
+        <div class="layer-toggles">
+            <label style="font-weight:600;color:#1a4b8c;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #ddd">
+                <input type="checkbox" id="toggle-offline" checked> Offline-Modus (lokale Tiles)
+            </label>
+            <label><input type="checkbox" id="toggle-dop"> Luftbild (DOP)</label>
+            <label><input type="checkbox" id="toggle-dgm"> H&ouml;henmodell (DGM)</label>
+            <label><input type="checkbox" id="toggle-contours"> H&ouml;henlinien (1m)</label>
+            <label><input type="checkbox" id="toggle-permanent" checked> Meine Flurst&uuml;cke</label>
+            <label><input type="checkbox" id="toggle-points"> Grenzpunkte (Genauigkeit)</label>
+        </div>
+    </div>
+
+    <script src="./lib/leaflet/leaflet.js"></script>
+    <script src="./js/app.js"></script>
+    <script src="./js/gps.js"></script>
+</body>
+</html>
