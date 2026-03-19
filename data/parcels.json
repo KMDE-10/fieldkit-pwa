@@ -13,5 +13,29 @@
     "state": "BY",
     "gemarkung": "8031",
     "numbers": ["68/3"]
+  },
+  {
+    "state": "ST",
+    "gemarkung": "151275",
+    "flur": "11",
+    "numbers": ["61/31"]
+  },
+  {
+    "state": "ST",
+    "gemarkung": "151275",
+    "flur": "4",
+    "numbers": ["108/26"]
+  },
+  {
+    "state": "ST",
+    "gemarkung": "151340",
+    "flur": "2",
+    "numbers": ["7"]
+  },
+  {
+    "state": "ST",
+    "gemarkung": "151340",
+    "flur": "4",
+    "numbers": ["1124", "1256", "141/1", "170", "344/141"]
   }
 ]
