@@ -183,7 +183,7 @@ var STATE_WMS = {
         dgm: { url: 'https://geoservices.bayern.de/od/wms/dgm/v1/relief', layers: 'by_dgm_relief' }
     },
     ST: {
-        dop: { url: 'https://www.geodatenportal.sachsen-anhalt.de/wms/dop20', layers: 'lsa_lvermgeo_dop20_2' },
+        dop: { url: 'https://www.geodatenportal.sachsen-anhalt.de/wss/service/ST_LVermGeo_DOP_WMS_OpenData/guest', layers: 'lsa_lvermgeo_dop20_2' },
         dgm: null // ST DGM WMS is broken, use local tiles
     }
 };
