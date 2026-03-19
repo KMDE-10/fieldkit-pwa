@@ -18,12 +18,12 @@
     <!-- GPS accuracy badge -->
     <div id="gps-status">GPS: --</div>
 
-    <!-- GPS locate button -->
-    <button id="gps-btn" title="Mein Standort">&#9678;</button>
-
-    <!-- Control panel -->
+    <!-- Control panel (must come before expand btn and gps-btn for CSS ~ selector) -->
     <div id="panel">
-        <h1>FieldKit</h1>
+        <div id="panel-header">
+            <h1>FieldKit</h1>
+            <button id="panel-minimize" title="Minimieren">&#9660;</button>
+        </div>
         <form id="coords-form">
             <label for="coords">Koordinaten (DMS oder Dezimal)</label>
             <input type="text" id="coords" placeholder='51&deg;10&apos;19.8"N 11&deg;25&apos;38.1"E' />
@@ -45,6 +45,7 @@
             <label style="font-weight:600;color:#1a4b8c;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #ddd">
                 <input type="checkbox" id="toggle-offline" checked> Offline-Modus (lokale Tiles)
             </label>
+            <label><input type="checkbox" id="toggle-osm" checked> Karte (OSM)</label>
             <label><input type="checkbox" id="toggle-dop"> Luftbild (DOP)</label>
             <label><input type="checkbox" id="toggle-dgm"> H&ouml;henmodell (DGM)</label>
             <label><input type="checkbox" id="toggle-contours"> H&ouml;henlinien (1m)</label>
@@ -52,6 +53,12 @@
             <label><input type="checkbox" id="toggle-points"> Grenzpunkte (Genauigkeit)</label>
         </div>
     </div>
+
+    <!-- Minimized panel tab (mobile only, shown via CSS ~ selector) -->
+    <button id="panel-expand" title="Panel öffnen">&#9650; FieldKit</button>
+
+    <!-- GPS locate button -->
+    <button id="gps-btn" title="Mein Standort">&#9678;</button>
 
     <script src="./lib/leaflet/leaflet.js"></script>
     <script src="./js/app.js"></script>

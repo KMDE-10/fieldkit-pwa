@@ -172,27 +172,51 @@ var OFFLINE = true; // start offline by default
 var offlineToggle = document.getElementById('toggle-offline');
 offlineToggle.checked = true;
 
-// Online layers — direct WMS URLs (no proxy needed, Leaflet loads as <img>)
+// Per-state WMS endpoints (direct URLs, no proxy needed — Leaflet loads as <img>)
+var STATE_WMS = {
+    TH: {
+        dop: { url: 'https://www.geoproxy.geoportal-th.de/geoproxy/services/DOP', layers: 'th_dop' },
+        dgm: { url: 'https://www.geoproxy.geoportal-th.de/geoproxy/services/DGM', layers: 'DGM2' }
+    },
+    BY: {
+        dop: { url: 'https://geoservices.bayern.de/od/wms/dop/v1/dop20', layers: 'by_dop20c' },
+        dgm: { url: 'https://geoservices.bayern.de/od/wms/dgm/v1/relief', layers: 'by_dgm_relief' }
+    },
+    ST: {
+        dop: { url: 'https://www.geodatenportal.sachsen-anhalt.de/wms/dop20', layers: 'lsa_lvermgeo_dop20_2' },
+        dgm: null // ST DGM WMS is broken, use local tiles
+    }
+};
+
+function makeWmsLayer(wmsUrl, wmsLayers, opts) {
+    return L.tileLayer.wms(wmsUrl, Object.assign({
+        layers: wmsLayers, transparent: true, format: 'image/png',
+        version: '1.1.1', maxZoom: 22
+    }, opts || {}));
+}
+
+// Online layers
 var osmOnline = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 22, maxNativeZoom: 19
 });
-var dopOnline = L.tileLayer.wms('https://www.geoproxy.geoportal-th.de/geoproxy/services/DOP', {
-    layers: 'th_dop', transparent: true, format: 'image/png',
-    version: '1.1.1', maxZoom: 22, opacity: 0.5
+
+// Online DOP/DGM: one WMS layer per state (they return transparent outside coverage)
+var dopOnlineLayers = [];
+var dgmOnlineLayers = [];
+var localDgmTile = L.tileLayer(BASE + '/tiles/dgm/{z}/{x}/{y}.png', {
+    maxZoom: 22, maxNativeZoom: 18, errorTileUrl: '', opacity: 0.5
 });
-var dgmOnline = L.tileLayer.wms('https://www.geoproxy.geoportal-th.de/geoproxy/services/DGM', {
-    layers: 'DGM2', transparent: true, format: 'image/png',
-    version: '1.1.1', maxZoom: 22, opacity: 0.5
+Object.keys(STATE_WMS).forEach(function(st) {
+    var cfg = STATE_WMS[st];
+    dopOnlineLayers.push(makeWmsLayer(cfg.dop.url, cfg.dop.layers, { opacity: 0.5 }));
+    if (cfg.dgm) {
+        dgmOnlineLayers.push(makeWmsLayer(cfg.dgm.url, cfg.dgm.layers, { opacity: 0.5 }));
+    } else {
+        dgmOnlineLayers.push(localDgmTile);
+    }
 });
-// Bavaria WMS (used when zoomed into BY parcels)
-var dopOnlineBY = L.tileLayer.wms('https://geoservices.bayern.de/od/wms/dop/v1/dop20', {
-    layers: 'by_dop20c', transparent: true, format: 'image/png',
-    version: '1.1.1', maxZoom: 22, opacity: 0.5
-});
-var dgmOnlineBY = L.tileLayer.wms('https://geoservices.bayern.de/od/wms/dgm/v1/relief', {
-    layers: 'by_dgm_relief', transparent: true, format: 'image/png',
-    version: '1.1.1', maxZoom: 22, opacity: 0.5
-});
+var dopOnline = L.layerGroup(dopOnlineLayers);
+var dgmOnline = L.layerGroup(dgmOnlineLayers);
 
 // Offline layers — local pre-downloaded tiles
 var osmOffline = L.tileLayer(BASE + '/tiles/osm/{z}/{x}/{y}.png', {
@@ -211,31 +235,27 @@ var dopLayer = dopOffline;
 var dgmLayer = dgmOffline;
 osmLayer.addTo(map);
 
-// Layer pairs for toggling
-var layerPairs = {
-    osm: { online: osmOnline, offline: osmOffline },
-    dop: { online: dopOnline, offline: dopOffline },
-    dgm: { online: dgmOnline, offline: dgmOffline }
-};
-
 function switchOfflineMode(offline) {
     OFFLINE = offline;
 
-    function swapLayer(key, refSetter) {
-        var pair = layerPairs[key];
-        var oldLayer = offline ? pair.online : pair.offline;
-        var newLayer = offline ? pair.offline : pair.online;
-        var wasOn = map.hasLayer(oldLayer);
-        if (wasOn) {
-            map.removeLayer(oldLayer);
-            newLayer.addTo(map);
-        }
-        refSetter(newLayer);
-    }
+    // Swap OSM
+    var osmWasOn = map.hasLayer(osmLayer);
+    if (osmWasOn) map.removeLayer(osmLayer);
+    osmLayer = offline ? osmOffline : osmOnline;
+    if (osmWasOn && document.getElementById('toggle-osm').checked) osmLayer.addTo(map);
 
-    swapLayer('osm', function(l) { osmLayer = l; });
-    swapLayer('dop', function(l) { dopLayer = l; });
-    swapLayer('dgm', function(l) { dgmLayer = l; });
+    // Swap DOP and DGM
+    [{old: offline ? dopOnline : dopOffline, nw: offline ? dopOffline : dopOnline, ref: 'dop'},
+     {old: offline ? dgmOnline : dgmOffline, nw: offline ? dgmOffline : dgmOnline, ref: 'dgm'}
+    ].forEach(function(entry) {
+        var wasOn = map.hasLayer(entry.old);
+        if (wasOn) {
+            map.removeLayer(entry.old);
+            entry.nw.addTo(map);
+        }
+        if (entry.ref === 'dop') dopLayer = entry.nw;
+        else dgmLayer = entry.nw;
+    });
 }
 
 offlineToggle.addEventListener('change', function() {
@@ -328,6 +348,7 @@ function bindLayerToggle(id, getLayer) {
         if (this.checked) map.addLayer(layer); else map.removeLayer(layer);
     });
 }
+bindLayerToggle('toggle-osm', function() { return osmLayer; });
 bindLayerToggle('toggle-dop', function() { return dopLayer; });
 bindLayerToggle('toggle-dgm', function() { return dgmLayer; });
 document.getElementById('toggle-contours').addEventListener('change', function () {
@@ -431,7 +452,7 @@ function searchParcel(lat, lng) {
 }
 
 // --- Search by Flurstück numbers ---
-function findParcelsByNumber(numbers, gemarkung) {
+function findParcelsByNumber(numbers, gemarkung, flur) {
     if (!parcelData) return [];
     var results = [];
     var searched = {};
@@ -443,6 +464,7 @@ function findParcelsByNumber(numbers, gemarkung) {
             var f = parcelData.features[i];
             var p = f.properties;
             if (gemarkung && p.gemarkungsnummer !== gemarkung) continue;
+            if (flur && p.flurnummer !== flur) continue;
             var fnr = p.flurstnr || p.zaehler || '';
             if (fnr === nr) {
                 results.push(f);
@@ -458,7 +480,7 @@ function showPermanentParcels() {
     var entries = Array.isArray(PERMANENT_PARCELS) ? PERMANENT_PARCELS : [PERMANENT_PARCELS];
     var found = [];
     entries.forEach(function (entry) {
-        found = found.concat(findParcelsByNumber(entry.numbers || [], entry.gemarkung || ''));
+        found = found.concat(findParcelsByNumber(entry.numbers || [], entry.gemarkung || '', entry.flur || ''));
     });
     found.forEach(function (f) {
         var layer = L.geoJSON(f, {
@@ -630,6 +652,23 @@ fetch(BASE + '/data/contours.geojson')
     });
 
 map.attributionControl.addAttribution('Katasterdaten: &copy; GDI-Th (dl-de/by-2-0)');
+
+// --- Panel minimize / expand (mobile) ---
+(function() {
+    var panel = document.getElementById('panel');
+    var minimizeBtn = document.getElementById('panel-minimize');
+    var expandBtn = document.getElementById('panel-expand');
+
+    minimizeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        panel.classList.add('minimized');
+    });
+
+    expandBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        panel.classList.remove('minimized');
+    });
+})();
 
 // --- Service Worker registration ---
 if ('serviceWorker' in navigator) {

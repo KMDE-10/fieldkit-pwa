@@ -1,4 +1,4 @@
-var CACHE_NAME = 'fieldkit-v1';
+var CACHE_NAME = 'fieldkit-v2';
 
 var APP_ASSETS = [
   './',

@@ -19,10 +19,57 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #1a1a1a; }
     -webkit-overflow-scrolling: touch;
 }
 
-#panel h1 {
-    font-size: 18px;
+#panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 12px;
+}
+
+#panel-header h1 {
+    font-size: 18px;
+    margin: 0;
     color: #222;
+}
+
+#panel-minimize {
+    display: none; /* shown only on mobile */
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    color: #555;
+    padding: 0;
+    min-height: unset;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+#panel-minimize:hover { background: #ddd; }
+
+/* Expand tab (mobile only, hidden by default) */
+#panel-expand {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255,255,255,0.95);
+    border: none;
+    border-radius: 16px 16px 0 0;
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d6a4f;
+    cursor: pointer;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.2);
+    text-align: center;
+    min-height: 44px;
 }
 
 #panel label {
@@ -55,7 +102,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #1a1a1a; }
     box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
 }
 
-#panel button {
+#panel button:not(#panel-minimize) {
     width: 100%;
     margin-top: 12px;
     padding: 10px;
@@ -69,7 +116,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #1a1a1a; }
     min-height: 44px;
 }
 
-#panel button:hover { background: #1b4332; }
+#panel button:not(#panel-minimize):hover { background: #1b4332; }
 
 #status {
     margin-top: 10px;
@@ -203,6 +250,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #1a1a1a; }
         max-height: 40vh;
         border-radius: 16px 16px 0 0;
         padding: 12px 16px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        transition: transform 0.3s ease, opacity 0.2s ease;
+    }
+    #panel.minimized {
+        transform: translateY(100%);
+        pointer-events: none;
+        opacity: 0;
     }
     #panel::before {
         content: '';
@@ -213,7 +267,20 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #1a1a1a; }
         border-radius: 2px;
         margin: 0 auto 8px;
     }
+    #panel-minimize {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #panel.minimized ~ #panel-expand {
+        display: block;
+    }
     #gps-btn {
         bottom: calc(40vh + 16px);
+        transition: bottom 0.3s ease;
+    }
+    #panel.minimized ~ #panel-expand ~ #gps-btn,
+    #panel.minimized ~ #gps-btn {
+        bottom: 60px;
     }
 }
