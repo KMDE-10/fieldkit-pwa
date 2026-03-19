@@ -1,4 +1,4 @@
-var CACHE_NAME = 'fieldkit-v2';
+var CACHE_NAME = 'fieldkit-v3';
 
 var APP_ASSETS = [
   './',
@@ -65,11 +65,9 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Online WMS/tile requests (geoportal, OSM CDN) — network-first, not cached
+  // Online WMS/tile requests (geoportal, OSM CDN) — let browser handle natively
+  // Do NOT intercept: service worker fetch() triggers CORS, but <img> tags don't
   if (url.hostname !== location.hostname) {
-    event.respondWith(fetch(event.request).catch(function() {
-      return new Response('', { status: 503 });
-    }));
     return;
   }
 
