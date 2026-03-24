@@ -10,6 +10,24 @@
     "numbers": ["16/1"]
   },
   {
+    "state": "TH",
+    "gemarkung": "1826",
+    "flur": "3",
+    "numbers": ["163", "313/191"]
+  },
+  {
+    "state": "TH",
+    "gemarkung": "1826",
+    "flur": "9",
+    "numbers": ["111"]
+  },
+  {
+    "state": "TH",
+    "gemarkung": "1826",
+    "flur": "12",
+    "numbers": ["146"]
+  },
+  {
     "state": "BY",
     "gemarkung": "8031",
     "numbers": ["68/3"]

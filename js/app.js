@@ -103,11 +103,14 @@ function populateFlstDropdown(parcelsConfig, gmkNames) {
     var sel = document.getElementById('flst-select');
     parcelsConfig.forEach(function (entry) {
         var gmk = entry.gemarkung || '';
+        var flur = entry.flur || '';
         var name = gmkNames[gmk] || gmk;
         entry.numbers.forEach(function (nr) {
             var opt = document.createElement('option');
-            opt.value = gmk + ':' + nr;
-            opt.textContent = name + ' (' + gmk + ') — ' + nr;
+            opt.value = gmk + ':' + flur + ':' + nr;
+            var label = name + ' (' + gmk + ')';
+            if (flur) label += ' Flur ' + flur;
+            opt.textContent = label + ' — ' + nr;
             sel.appendChild(opt);
         });
     });
@@ -581,10 +584,11 @@ function highlightParcels(features) {
 document.getElementById('flst-select').addEventListener('change', function () {
     var val = this.value;
     if (!val || !parcelData) return;
-    var sep = val.indexOf(':');
-    var gemarkung = val.substring(0, sep);
-    var nr = val.substring(sep + 1);
-    var found = findParcelsByNumber([nr], gemarkung);
+    var parts = val.split(':');
+    var gemarkung = parts[0];
+    var flur = parts[1] || '';
+    var nr = parts[2] || '';
+    var found = findParcelsByNumber([nr], gemarkung, flur);
     highlightParcels(found);
 });
 
